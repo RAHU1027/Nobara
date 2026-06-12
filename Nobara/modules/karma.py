@@ -2,7 +2,8 @@ from Nobara.database import karma_db
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from Nobara import app
-import config 
+import config
+import re
 
 @app.on_message(filters.command("karma", prefixes=config.config.COMMAND_PREFIXES) & filters.group)
 async def show_karma(client: Client, message: Message):
@@ -31,7 +32,8 @@ async def show_top_karma(client: Client, message: Message):
     await message.reply_text(f"🏆 **Top Karma Users in this Group**\n\n{leaderboard}")
 
 @app.on_message(filters.regex(
-        r"^(?i)(\+|\+\+|\+1|thx|tnx|ty|tq|thank you|thanx|thanks|pro|cool|good|agree|makasih|👍|\+\+ .+)$"
+        r"^(\+|\+\+|\+1|thx|tnx|ty|tq|thank you|thanx|thanks|pro|cool|good|agree|makasih|👍|\+\+ .+)$",
+        flags=re.IGNORECASE
     ) & filters.group & filters.reply)
 async def increase_karma_handler(client: Client, message: Message):
     target_user_id = message.reply_to_message.from_user.id
@@ -42,7 +44,10 @@ async def increase_karma_handler(client: Client, message: Message):
     await karma_db.increase_karma(target_user_id, name , chat_id)
     await message.reply_text(f"Increased karma for **{message.reply_to_message.from_user.mention}**")
 
-@app.on_message(filters.regex(r"^(?i)(-|--|-1|not cool|disagree|worst|bad|👎|-- .+)$") & filters.group & filters.reply)
+@app.on_message(filters.regex(
+        r"^(-|--|-1|not cool|disagree|worst|bad|👎|-- .+)$", 
+        flags=re.IGNORECASE
+    ) & filters.group & filters.reply)
 async def decrease_karma_handler(client: Client, message: Message):
 
     target_user_id = message.reply_to_message.from_user.id
