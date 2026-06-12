@@ -1,24 +1,22 @@
 import random
-from pyrogram import filters , Client 
-from pyrogram.types import Message , CallbackQuery
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import re
+from pyrogram import filters, Client 
+from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from Nobara import app as pgram 
-from Nobara.vars import quotes , QUOTES_IMG
+from Nobara.vars import quotes, QUOTES_IMG
 from pyrogram.enums import ParseMode
-from pyrogram.types import InputMediaPhoto
 import requests
 from config import config 
 from Nobara.decorator.save import save 
 from Nobara.decorator.errors import error
-
 
 # Anime quotes
 def anime_quote():
     quote, character, anime = random.choice(quotes)
     return quote, character, anime
 
-# Command: /quote - Sends a text-based anime quote
-@pgram.on_message(filters.command(["animequote" , "aquote"]  , prefixes=config.COMMAND_PREFIXES))
+# Command: /animequote - Sends a text-based anime quote
+@pgram.on_message(filters.command(["animequote", "aquote"], prefixes=config.COMMAND_PREFIXES))
 @error
 @save
 async def text_quote(_, message):
@@ -29,8 +27,8 @@ async def text_quote(_, message):
     )
     await message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
 
-# Command: /animequotes - Sends an image-based anime quote
-@pgram.on_message(filters.command("iaquotes"  , prefixes=config.COMMAND_PREFIXES))
+# Command: /iaquotes - Sends an image-based anime quote
+@pgram.on_message(filters.command("iaquotes", prefixes=config.COMMAND_PREFIXES))
 @error
 @save
 async def image_quote(_, message):
@@ -63,7 +61,6 @@ async def change_image_quote(_, callback_query):
         reply_markup=keyboard
     )
 
-# Function to fetch Shayri from the API
 def get_random_shayri():
     try:
         response = requests.get(config.shayri_api_url)
@@ -78,8 +75,8 @@ def get_random_shayri():
         return f"⚠️ त्रुटि: {str(e)}", None
 
 # Command to send Shayri with a button
-@pgram.on_message(filters.command("shayri"  , prefixes=config.COMMAND_PREFIXES))
-@pgram.on_message(filters.regex(r"^(?i)Yumeko Ek Shayri Sunao$") & filters.group)
+@pgram.on_message(filters.command("shayri", prefixes=config.COMMAND_PREFIXES))
+@pgram.on_message(filters.regex(r"^Yumeko Ek Shayri Sunao$", flags=re.IGNORECASE) & filters.group)
 @error
 @save
 async def fetch_shayri(client: Client, message: Message):
@@ -96,7 +93,6 @@ async def fetch_shayri(client: Client, message: Message):
     else:
         await message.reply_text(shayri)
 
-# Callback to change Shayri
 @pgram.on_callback_query(filters.regex("change_shayri"))
 @error
 async def change_shayri(client: Client, callback_query: CallbackQuery):
@@ -114,10 +110,3 @@ async def change_shayri(client: Client, callback_query: CallbackQuery):
         await callback_query.answer(shayri, show_alert=True)
         
 __module__ = "𝖰𝗎𝗈𝗍𝖾𝗌"
-
-
-
-__help__ = """ ✧ `/𝖺𝗊𝗎𝗈𝗍𝖾` **:** 𝖦𝖾𝗍 𝖱𝖺𝗇𝖽𝗈𝗆 𝖠𝗇𝗂𝗆𝖾 𝖰𝗎𝗈𝗍𝖾𝗌.
-   ✧ `/𝗂𝖺𝗊𝗎𝗈𝗍𝖾𝗌` **:** 𝖦𝖾𝗍 𝖱𝖺𝗇𝖽𝗈𝗆 𝖠𝗇𝗂𝗆𝖾 𝖰𝗎𝗈𝗍𝖾𝗌 𝖳𝗁𝗋𝗈𝗎𝗀𝗁 𝖨𝗆𝖺𝗀𝖾.
-   ✧ `/𝗌𝗁𝖺𝗒𝗋𝗂` **:** 𝖦𝖾𝗍 𝖱𝖺𝗇𝖽𝗈𝗆 𝖧𝗂𝗇𝖽𝗂 𝖲𝗁𝖺𝗒𝗋𝗂𝗌.
- """
