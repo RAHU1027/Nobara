@@ -1,8 +1,9 @@
 import urllib.request
 import urllib
-import imghdr
 import posixpath
 import re
+from PIL import Image
+import io
 
 class Bing:
     def __init__(self, query, limit, output_dir, adult, timeout,  filter='', verbose=True):
@@ -19,7 +20,6 @@ class Bing:
         assert type(timeout) == int, "timeout must be integer"
         self.timeout = timeout
 
-        # self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'}
         self.page_counter = 0
         self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) ' 
       'AppleWebKit/537.11 (KHTML, like Gecko) '
@@ -48,16 +48,21 @@ class Bing:
 
     def save_image(self, link, file_path):
         request = urllib.request.Request(link, None, self.headers)
-        image = urllib.request.urlopen(request, timeout=self.timeout).read()
-        if not imghdr.what(None, image):
+        image_data = urllib.request.urlopen(request, timeout=self.timeout).read()
+        
+        # Pillow se image verify karo
+        try:
+            img = Image.open(io.BytesIO(image_data))
+            img.verify() # check if it is a valid image
+        except Exception:
             raise ValueError('Invalid image, not saving {}\n'.format(link))
+            
         with open(str(file_path), 'wb') as f:
-            f.write(image)
+            f.write(image_data)
 
     
     def download_image(self, link):
         self.download_count += 1
-        # Get the image link
         try:
             path = urllib.parse.urlsplit(link).path
             filename = posixpath.basename(path).split('?')[0]
@@ -74,7 +79,6 @@ class Bing:
     
     def run(self):
         while self.download_count < self.limit:
-            # Parse the page source and download pics
             request_url = 'https://www.bing.com/images/async?q=' + urllib.parse.quote_plus(self.query) \
                           + '&first=' + str(self.page_counter) + '&count=' + str(self.limit) \
                           + '&adlt=' + self.adult + '&qft=' + ('' if self.filter is None else self.get_filter(self.filter))
